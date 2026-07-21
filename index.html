@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AirNav Indonesia - Cabang Medan (Final Edition)</title>
+    
+    <!-- Fonts: Syne untuk Heading Premium, Poppins untuk Readability -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Syne:wght@500;700;800&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Poppins', 'sans-serif'], display: ['Syne', 'sans-serif'] },
+                    colors: {
+                        airnav: { blue: '#005596', red: '#E30613', softblue: '#F0F6FA', light: '#F8FAFC' }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- React & Babel -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- FRAMER MOTION -->
+    <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
+
+    <style>
+        body { background-color: #F8FAFC; color: #1e293b; overflow-x: hidden; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #F0F6FA; }
+        ::-webkit-scrollbar-thumb { background: #005596; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #003d6d; }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 1);
+            box-shadow: 0 20px 40px rgba(0, 85, 150, 0.05);
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        (() => {
+            const { useState, useEffect } = React;
+            const { motion, AnimatePresence, useScroll, useTransform } = window.Motion;
+
+            // ==========================================
+            // CONFIG ANIMASI FRAMER MOTION
+            // ==========================================
+            const easeCustom = [0.22, 1, 0.36, 1];
+
+            const fadeUp = {
+                hidden: { opacity: 0, y: 60 },
+                visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: easeCustom } }
+            };
+
+            const fadeLeft = {
+                hidden: { opacity: 0, x: -60 },
+                visible: { opacity: 1, x: 0, transition: { duration: 0.8, ease: easeCustom } }
+            };
+
+            const fadeRight = {
+                hidden: { opacity: 0, x: 60 },
+                visible: { opacity: 1, x: 0, transition: { duration: 0.8, ease: easeCustom } }
+            };
+
+            const staggerContainer = {
+                hidden: { opacity: 0 },
+                visible: { opacity: 1, transition: { staggerChildren: 0.15 } }
+            };
+
+            const scaleUp = {
+                hidden: { opacity: 0, scale: 0.8 },
+                visible: { opacity: 1, scale: 1, transition: { duration: 0.8, ease: easeCustom } }
+            };
+
+            const ScrollReveal = ({ children, variant = fadeUp, className = "", delay = 0 }) => {
+                const customVariant = {
+                    ...variant,
+                    visible: { ...variant.visible, transition: { ...variant.visible.transition, delay } }
+                };
+                return (
+                    <motion.div
+                        variants={customVariant}
+                        initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }}
+                        className={className}
+                    >
+                        {children}
+                    </motion.div>
+                );
+            };
+
+            // ==========================================
+            // 1. NAVBAR (ANIMATED STICKY PILL)
+            // ==========================================
+            const Navbar = () => {
+                const [isScrolled, setIsScrolled] = useState(false);
+
+                useEffect(() => {
+                    const handleScroll = () => setIsScrolled(window.scrollY > 50);
+                    window.addEventListener('scroll', handleScroll);
+                    return () => window.removeEventListener('scroll', handleScroll);
+                }, []);
+
+                return (
+                    <motion.div 
+                        className="fixed top-0 left-0 w-full z-50 flex justify-center pointer-events-none"
+                        animate={{ paddingTop: isScrolled ? "1.5rem" : "0rem" }}
+                        transition={{ type: "spring", stiffness: 100, damping: 20 }}
+                    >
+                        <motion.nav 
+                            layout
+                            className="pointer-events-auto flex justify-between items-center px-6 md:px-10"
+                            initial={{ width: "100%", borderRadius: "0px", backgroundColor: "rgba(255,255,255,0)", border: "1px solid transparent" }}
+                            animate={{
+                                width: isScrolled ? "90%" : "100%",
+                                maxWidth: isScrolled ? "1200px" : "100%",
+                                borderRadius: isScrolled ? "9999px" : "0px",
+                                backgroundColor: isScrolled ? "rgba(255, 255, 255, 0.85)" : "rgba(255, 255, 255, 0)",
+                                backdropFilter: isScrolled ? "blur(20px)" : "blur(0px)",
+                                border: isScrolled ? "1px solid rgba(255, 255, 255, 0.4)" : "1px solid transparent",
+                                boxShadow: isScrolled ? "0 10px 40px rgba(0, 85, 150, 0.1)" : "none",
+                                paddingBottom: isScrolled ? "0.75rem" : "1.5rem",
+                                paddingTop: isScrolled ? "0.75rem" : "1.5rem",
+                            }}
+                            transition={{ type: "spring", stiffness: 120, damping: 20 }}
+                        >
+                            <a href="#home" className="flex flex-col relative group cursor-pointer">
+                                <div className="h-8 md:h-10 relative w-[180px] md:w-[220px]">
+                                    <AnimatePresence mode="wait">
+                                        {isScrolled ? (
+                                            <motion.img 
+                                                key="logo-color"
+                                                src="/Assets/Image/LOGOAIRNAVINDONESIALandscape-9-1.png" 
+                                                alt="AirNav Color" 
+                                                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                                                transition={{ duration: 0.3 }}
+                                                className="absolute inset-0 w-full h-full object-contain object-left"
+                                            />
+                                        ) : (
+                                            <motion.img 
+                                                key="logo-white"
+                                                src="/Assets/Image/LOGOAIRNAVINDONESIALandscapePutih-1.png" 
+                                                alt="AirNav White" 
+                                                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                                                transition={{ duration: 0.3 }}
+                                                className="absolute inset-0 w-full h-full object-contain object-left"
+                                            />
+                                        )}
+                                    </AnimatePresence>
+                                </div>
+                                <motion.span 
+                                    animate={{ color: isScrolled ? "#005596" : "#ffffff" }}
+                                    className="text-[7px] md:text-[8px] font-bold tracking-[0.25em] uppercase ml-12 md:ml-13 -mt-3"
+                                >
+                                    Cabang Medan
+                                </motion.span>
+                            </a>
+
+                            <div className="hidden lg:flex gap-8 items-center">
+                                {['Home', 'Tentang', 'Layanan', 'Cabang', 'Galeri'].map((name) => (
+                                    <motion.a 
+                                        key={name} href={`#${name.toLowerCase()}`} 
+                                        animate={{ color: isScrolled ? "#334155" : "#ffffff" }}
+                                        whileHover={{ color: "#E30613", y: -2 }}
+                                        className="font-semibold text-sm transition-colors"
+                                    >
+                                        {name}
+                                    </motion.a>
+                                ))}
+                            </div>
+                            
+                            <motion.div animate={{ color: isScrolled ? "#005596" : "#ffffff" }} className="lg:hidden text-2xl">
+                                <i className="fa-solid fa-bars"></i>
+                            </motion.div>
+                        </motion.nav>
+                    </motion.div>
+                );
+            };
+
+            // ==========================================
+            // 2. HERO COMPONENT
+            // ==========================================
+            const Hero = () => {
+                const { scrollY } = useScroll();
+                const yBackground = useTransform(scrollY, [0, 1000], [0, 300]);
+                const yText = useTransform(scrollY, [0, 1000], [0, 150]);
+
+                return (
+                    <section id="home" className="relative h-screen flex items-center pt-10 overflow-hidden bg-[#0a192f]">
+                        <motion.div style={{ y: yBackground }} className="absolute inset-0 w-full h-full">
+                            <video className="w-full h-full object-cover opacity-60" autoPlay muted playsInline loop>
+                                <source src="/Assets/Video/hero.mp4" type="video/mp4"/>
+                            </video>
+                        </motion.div>
+                        
+                        <div className="absolute inset-0 bg-gradient-to-r from-[#003d6d]/90 via-airnav-blue/60 to-transparent"></div>
+                        
+                        <motion.div style={{ y: yText }} className="container mx-auto px-6 md:px-12 relative z-10 pt-20">
+                            <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="max-w-4xl">
+                                <div className="overflow-hidden mb-2">
+                                    <motion.h1 variants={fadeUp} className="text-5xl md:text-7xl lg:text-8xl font-display font-bold text-white leading-none">
+                                        Navigasi Udara
+                                    </motion.h1>
+                                </div>
+                                <div className="overflow-hidden mb-8">
+                                    <motion.h1 variants={fadeUp} className="text-5xl md:text-7xl lg:text-8xl font-display font-bold text-blue-200 leading-none">
+                                        Masa Depan.
+                                    </motion.h1>
+                                </div>
+                                
+                                <motion.p variants={fadeUp} className="text-lg md:text-xl text-white/90 mb-12 max-w-2xl leading-relaxed font-light">
+                                    Menjaga keselamatan, keamanan, dan efisiensi ruang udara Sumatera Utara. Kami adalah garda terdepan penerbangan di langit Kualanamu.
+                                </motion.p>
+                                
+                                <motion.a 
+                                    variants={fadeUp}
+                                    whileHover={{ scale: 1.05, backgroundColor: "#E30613", color: "#ffffff" }}
+                                    whileTap={{ scale: 0.95 }}
+                                    href="#tentang" 
+                                    className="bg-white text-airnav-blue px-8 py-4 rounded-full font-bold shadow-2xl inline-flex items-center gap-3 transition-colors"
+                                >
+                                    Jelajahi Profil Kami <i className="fa-solid fa-arrow-down"></i>
+                                </motion.a>
+                            </motion.div>
+                        </motion.div>
+                    </section>
+                );
+            };
+
+            // ==========================================
+            // 3. ABOUT & MAP COMPONENT
+            // ==========================================
+            const About = () => {
+                return (
+                    <section id="tentang" className="py-24 bg-white overflow-hidden relative">
+                        <div className="container mx-auto px-6 md:px-12 max-w-7xl">
+                            
+                            {/* Teks & Gambar Sekilas */}
+                            <div className="flex flex-col lg:flex-row gap-16 items-center mb-32">
+                                <div className="w-full lg:w-1/2">
+                                    <ScrollReveal>
+                                        <h3 className="text-airnav-red font-bold mb-2 tracking-widest text-sm uppercase">Tentang Kami</h3>
+                                        <h2 className="text-4xl md:text-5xl font-display font-bold text-airnav-blue mb-6">Sekilas AirNav Cabang Medan</h2>
+                                        <p className="text-gray-600 leading-relaxed mb-6 text-lg">
+                                            Sebagai penyedia layanan navigasi tunggal di Indonesia, AirNav Cabang Medan bertanggung jawab penuh memastikan keselamatan pergerakan pesawat di Bandara Internasional Kualanamu dan ruang udara Sumatera Utara.
+                                        </p>
+                                    </ScrollReveal>
+                                    
+                                    <ScrollReveal variant={fadeLeft} delay={0.2}>
+                                        <div className="glass-card bg-airnav-softblue/60 border-l-4 border-airnav-blue p-8 mt-8 rounded-2xl rounded-l-none">
+                                            <h4 className="font-bold text-airnav-blue text-lg mb-2"><i className="fa-solid fa-eye mr-2"></i> Visi Kami</h4>
+                                            <p className="text-gray-700 italic font-medium mb-6">"Menjadi penyedia layanan navigasi penerbangan bertaraf internasional."</p>
+                                            <h4 className="font-bold text-airnav-blue text-lg mb-2"><i className="fa-solid fa-rocket mr-2"></i> Misi Kami</h4>
+                                            <ul className="text-gray-700 space-y-2">
+                                                <li className="flex gap-3 items-start"><i className="fa-solid fa-check text-green-600 mt-1"></i> Menyediakan layanan navigasi penerbangan yang aman dan efisien.</li>
+                                                <li className="flex gap-3 items-start"><i className="fa-solid fa-check text-green-600 mt-1"></i> Mendorong pertumbuhan industri penerbangan nasional.</li>
+                                            </ul>
+                                        </div>
+                                    </ScrollReveal>
+                                </div>
+                                <div className="w-full lg:w-1/2">
+                                    <ScrollReveal variant={scaleUp}>
+                                        <div className="relative">
+                                            <div className="absolute inset-0 bg-airnav-blue rounded-[3rem] transform rotate-3 translate-x-3 translate-y-3 opacity-10"></div>
+                                            <img src="/Assets/Image/TowerKualanamu.jpg" alt="ATC Tower" className="relative rounded-[3rem] shadow-2xl w-full object-cover h-[500px]" />
+                                        </div>
+                                    </ScrollReveal>
+                                </div>
+                            </div>
+
+                            {/* Area Peta Operasional */}
+                            <div className="mb-10">
+                                <ScrollReveal className="text-center mb-16">
+                                    <h2 className="text-4xl md:text-5xl font-display font-bold text-airnav-blue mb-4">Operational Area</h2>
+                                    <p className="text-gray-500 max-w-2xl mx-auto">Sebaran wilayah kerja dan unit operasional navigasi udara di seluruh penjuru Nusantara.</p>
+                                </ScrollReveal>
+                                
+                                <ScrollReveal variant={scaleUp}>
+                                    <div className="relative w-full max-w-5xl mx-auto bg-white rounded-[3rem] p-6 md:p-12 border border-gray-100 shadow-[0_20px_50px_rgba(0,85,150,0.06)] mb-16 flex justify-center items-center overflow-hidden min-h-[300px] md:min-h-[500px]">
+                                        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/clean-textile.png')] opacity-30"></div>
+                                        
+                                        <div className="relative w-full z-10 flex justify-center">
+                                            {/* Peta Image yang sudah berisi pin dari user */}
+                                            <img src="/Assets/Image/Airnav-Map.png" alt="Peta Indonesia" className="w-full h-auto object-contain drop-shadow-xl" />
+                                        </div>
+
+                                        {/* Logo Nav-Earth menggunakan aset user */}
+                                        <motion.div 
+                                            whileHover={{ scale: 1.05 }}
+                                            className="absolute bottom-6 md:bottom-8 left-6 md:left-8 bg-white/90 backdrop-blur-md p-3 md:p-4 rounded-xl shadow-lg border border-gray-100 flex items-center justify-center z-20"
+                                        >
+                                            <img src="/Assets/Image/logo_navearthcopy.png" alt="Nav-Earth Logo" className="h-10 md:h-14 object-contain" />
+                                        </motion.div>
+                                    </div>
+                                </ScrollReveal>
+
+                                {/* Statistik Card */}
+                                <motion.div
+                                    variants={staggerContainer}
+                                    initial="hidden"
+                                    whileInView="visible"
+                                    viewport={{ once: true, margin: "-100px" }}
+                                    className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6 max-w-6xl mx-auto"
+                                >
+                                    {[
+                                        { num: "1", title: "Head Office", image: '/Assets/Image/Icon/IconOperationalPNH-13.png' },
+                                        { num: "2", title: "Main Branch", image: '/Assets/Image/Icon/IconOperationalPNH-14.png' },
+                                        { num: "27", title: "Branch Office", image: '/Assets/Image/Icon/IconOperationalPNH-15.png' },
+                                        { num: "34", title: "Sub-Branch", image: '/Assets/Image/Icon/IconOperationalPNH-16.png' },
+                                        { num: "1", title: "AIS Office", image: '/Assets/Image/Icon/IconOperationalPNH-17.png' },
+                                        { num: "234", title: "Air Nav Units", image: '/Assets/Image/Icon/IconOperationalPNH-18.png' },
+                                    ].map((stat, index) => (
+                                        <motion.div
+                                            key={index}
+                                            variants={fadeUp}
+                                            whileHover={{ y: -10, scale: 1.05 }}
+                                            className="glass-card rounded-2xl p-6 text-center border border-gray-100 cursor-default"
+                                        >
+                                            <div className="w-16 h-16 mx-auto bg-airnav-softblue rounded-full flex items-center justify-center mb-4">
+                                                <img
+                                                    src={stat.image}
+                                                    alt={stat.title}
+                                                    className="w-10 h-10 object-contain"
+                                                />
+                                            </div>
+
+                                            <h3 className="text-3xl md:text-4xl font-display font-bold text-airnav-blue mb-1">
+                                                {stat.num}
+                                            </h3>
+
+                                            <p className="text-[10px] md:text-[11px] text-gray-500 font-bold uppercase tracking-widest leading-tight">
+                                                {stat.title}
+                                            </p>
+                                        </motion.div>
+                                    ))}
+                                </motion.div>
+                            </div>
+                        </div>
+                    </section>
+                );
+            };
+
+            // ==========================================
+            // 4. SERVICES
+            // ==========================================
+            const Services = () => {
+                const services = [
+                    { icon: 'fa-tower-broadcast', color: 'text-blue-500', bg: 'bg-blue-50', title: 'Air Traffic Control (ATC)', desc: 'Layanan pengendalian lalu lintas udara untuk mengatur pergerakan pesawat di udara dan di darat, mencegah tabrakan, dan menjaga efisiensi.' },
+                    { icon: 'fa-book-atlas', color: 'text-red-500', bg: 'bg-red-50', title: 'Aeronautical Info (AIS)', desc: 'Layanan Informasi Aeronautika bertugas mengumpulkan dan menyebarkan data yang esensial untuk keselamatan penerbangan.' },
+                    { icon: 'fa-satellite-dish', color: 'text-indigo-500', bg: 'bg-indigo-50', title: 'Aviation Telecom.', desc: 'Jaringan infrastruktur yang menjamin kelancaran komunikasi pesan suara maupun data penerbangan secara realtime 24/7.' },
+                ];
+
+                return (
+                    <section id="layanan" className="py-32 bg-airnav-softblue relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-100 rounded-full blur-[120px] opacity-60"></div>
+                        
+                        <div className="container mx-auto px-6 md:px-12 max-w-7xl relative z-10">
+                            <ScrollReveal className="text-center mb-20">
+                                <h3 className="text-airnav-red font-bold uppercase tracking-widest text-sm mb-4">Layanan Navigasi</h3>
+                                <h2 className="text-5xl md:text-6xl font-display font-bold text-airnav-blue mb-6">Navigasi Tanpa Batas</h2>
+                                <p className="text-gray-600 text-lg max-w-3xl mx-auto">
+                                    Tiga pilar layanan utama kami didedikasikan sepenuhnya untuk memastikan keselamatan, keamanan, dan kelancaran setiap fase pergerakan pesawat terbang di wilayah udara Indonesia.
+                                </p>
+                            </ScrollReveal>
+
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                                {services.map((srv, idx) => (
+                                    <ScrollReveal key={idx} variant={fadeUp} delay={idx * 0.2}>
+                                        <motion.div 
+                                            whileHover={{ y: -15, scale: 1.02 }}
+                                            className="glass-card p-10 rounded-[2.5rem] border border-white h-full flex flex-col items-start bg-white/80"
+                                        >
+                                            <div className={`w-20 h-20 rounded-3xl ${srv.bg} flex items-center justify-center mb-8 shadow-sm`}>
+                                                <i className={`fa-solid ${srv.icon} text-3xl ${srv.color}`}></i>
+                                            </div>
+                                            <h3 className="text-2xl font-display font-bold text-[#003d6d] mb-4">{srv.title}</h3>
+                                            <p className="text-gray-600 leading-relaxed">{srv.desc}</p>
+                                        </motion.div>
+                                    </ScrollReveal>
+                                ))}
+                            </div>
+                        </div>
+                    </section>
+                );
+            };
+
+            // ==========================================
+            // 5. CABANG & STRUKTUR (DENGAN MODAL)
+            // ==========================================
+            const DetailCabang = () => {
+                const [isModalOpen, setIsModalOpen] = useState(false);
+
+                return (
+                    <section id="cabang" className="py-24 bg-white border-y border-gray-100 relative">
+                        <div className="container mx-auto px-6 md:px-12 max-w-7xl">
+                            <ScrollReveal className="text-center mb-16">
+                                <h2 className="text-4xl font-display font-bold text-airnav-blue mb-4">Informasi Cabang</h2>
+                                <p className="text-gray-500">Struktur dan Titik Lokasi Resmi AirNav Cabang Medan.</p>
+                            </ScrollReveal>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                                <ScrollReveal variant={fadeLeft}>
+                                    <motion.div
+                                        whileHover={{ scale: 1.02 }}
+                                        className="glass-card bg-white p-8 md:p-10 rounded-[2.5rem] border border-gray-100 h-full flex flex-col"
+                                    >
+                                        <h2 className="text-2xl font-display font-bold text-airnav-blue mb-6 border-l-4 border-airnav-red pl-4">
+                                            Struktur Organisasi
+                                        </h2>
+
+                                        {/* Bagian gambar struktur ditambahkan fungsi click dan hover indicator */}
+                                        <div 
+                                            className="overflow-hidden rounded-3xl border border-gray-200 cursor-pointer relative group flex-grow flex items-center justify-center bg-gray-50"
+                                            onClick={() => setIsModalOpen(true)}
+                                        >
+                                            <img
+                                                src="/Assets/Image/StrukturAirnav.png"
+                                                alt="Struktur Organisasi AirNav Indonesia Cabang Medan"
+                                                className="w-full h-auto object-contain transition-transform duration-500 group-hover:scale-105"
+                                            />
+                                            {/* Hover overlay penanda klik */}
+                                            <div className="absolute inset-0 bg-airnav-blue/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                                                <div className="bg-white/90 backdrop-blur px-4 py-2 rounded-full shadow-lg text-airnav-blue font-semibold text-sm flex items-center gap-2">
+                                                    <i className="fa-solid fa-magnifying-glass-plus"></i> Klik untuk perbesar
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                </ScrollReveal>
+                                
+                                <ScrollReveal variant={fadeRight}>
+                                    <motion.div whileHover={{ scale: 1.02 }} className="glass-card bg-white p-8 md:p-10 rounded-[2.5rem] border border-gray-100 h-full flex flex-col">
+                                        <h2 className="text-2xl font-display font-bold text-airnav-blue mb-6 border-l-4 border-airnav-blue pl-4">Lokasi Kantor</h2>
+                                        <div className="flex-grow bg-gray-100 rounded-3xl overflow-hidden shadow-inner min-h-[300px]">
+                                            <iframe 
+                                                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d127392.20377457788!2d98.57723910819717!3d3.5901235123000676!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x303131b1c002a243%3d0!2sKualanamu%20International%20Airport!5e0!3m2!1sen!2sid!4v1689100000000!5m2!1sen!2sid" 
+                                                width="100%" height="100%" style={{border:0}} loading="lazy" title="Peta Lokasi">
+                                            </iframe>
+                                        </div>
+                                    </motion.div>
+                                </ScrollReveal>
+                            </div>
+                        </div>
+
+                        {/* =======================
+                            MODAL LIGHTBOX
+                        ======================== */}
+                        <AnimatePresence>
+                            {isModalOpen && (
+                                <motion.div
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    transition={{ duration: 0.3 }}
+                                    onClick={() => setIsModalOpen(false)}
+                                    className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 md:p-10 cursor-zoom-out"
+                                >
+                                    <motion.div
+                                        initial={{ scale: 0.9, y: 20 }}
+                                        animate={{ scale: 1, y: 0 }}
+                                        exit={{ scale: 0.9, y: 20 }}
+                                        transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                                        onClick={(e) => e.stopPropagation()} // Mencegah klik dari menjalar ke parent (menutup modal)
+                                        className="relative w-full max-w-6xl max-h-screen flex justify-center items-center cursor-default bg-white rounded-2xl md:rounded-[3rem] p-4 shadow-2xl"
+                                    >
+                                        <button
+                                            onClick={() => setIsModalOpen(false)}
+                                            className="absolute -top-12 right-0 md:-right-12 w-10 h-10 bg-white/10 hover:bg-airnav-red text-white rounded-full flex items-center justify-center transition-colors shadow-lg"
+                                        >
+                                            <i className="fa-solid fa-times text-xl"></i>
+                                        </button>
+                                        <img
+                                            src="/Assets/Image/StrukturAirnav.png"
+                                            alt="Struktur Organisasi Full"
+                                            className="w-full h-full max-h-[85vh] object-contain rounded-xl md:rounded-3xl"
+                                        />
+                                    </motion.div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+
+                    </section>
+                );
+            };
+
+            // ==========================================
+            // 6. GALLERY & FOOTER
+            // ==========================================
+            const GalleryAndFooter = () => {
+                return (
+                    <>
+                        <section id="galeri" className="py-24 bg-airnav-light">
+                            <div className="container mx-auto px-6 md:px-12 max-w-7xl">
+                                <ScrollReveal className="text-center mb-16">
+                                    <h2 className="text-4xl font-display font-bold text-airnav-blue mb-4">Galeri Kegiatan</h2>
+                                    <p className="text-gray-500">Dokumentasi operasional harian Cabang Medan.</p>
+                                </ScrollReveal>
+                                
+                                <motion.div 
+                                    variants={staggerContainer} initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }}
+                                    className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6"
+                                >
+                                    {[1, 2, 3, 4, 5, 6, 7, 8].map((item) => (
+                                        <motion.div key={item} variants={scaleUp} className="aspect-square rounded-3xl overflow-hidden group shadow-sm bg-white relative cursor-pointer">
+                                            <motion.img 
+                                                whileHover={{ scale: 1.1 }} transition={{ duration: 0.5 }}
+                                                src={`https://source.unsplash.com/random/600x600?aviation,airport,sig=${item+60}`} 
+                                                alt="Galeri AirNav" 
+                                                className="w-full h-full object-cover"
+                                            />
+                                            <div className="absolute inset-0 bg-airnav-blue/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                                                <i className="fa-solid fa-expand text-3xl text-white"></i>
+                                            </div>
+                                        </motion.div>
+                                    ))}
+                                </motion.div>
+                            </div>
+                        </section>
+
+                        <footer className="bg-[#003d6d] text-white py-12 border-t-[6px] border-airnav-red text-center relative overflow-hidden">
+                            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5"></div>
+                            <div className="container mx-auto px-6 relative z-10">
+                                <ScrollReveal variant={fadeUp}>
+                                    <div className="flex justify-center mb-6">
+                                        <img src="/Assets/Image/LOGOAIRNAVINDONESIALandscapePutih-1.png" alt="AirNav Logo" className="h-10 md:h-12 object-contain" />
+                                    </div>
+                                    <h2 className="text-xl font-display font-bold mb-2 tracking-[0.2em] uppercase text-blue-100">Cabang Medan</h2>
+                                    <p className="mb-8 text-blue-200/70 text-sm">Bandara Internasional Kualanamu, Deli Serdang, Sumatera Utara.</p>
+                                    
+                                    <div className="flex justify-center gap-4 mb-8">
+                                        {['instagram', 'youtube', 'linkedin'].map(icon => (
+                                            <motion.a 
+                                                key={icon} href="#" whileHover={{ scale: 1.2, backgroundColor: "#E30613" }}
+                                                className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center transition-colors"
+                                            >
+                                                <i className={`fa-brands fa-${icon}`}></i>
+                                            </motion.a>
+                                        ))}
+                                    </div>
+                                    
+                                    <div className="border-t border-white/10 pt-6">
+                                        <p className="text-xs text-blue-200/50">&copy; 2026 AirNav Indonesia Cabang Medan. All rights reserved.</p>
+                                    </div>
+                                </ScrollReveal>
+                            </div>
+                        </footer>
+                    </>
+                );
+            };
+
+            const App = () => {
+                return (
+                    <div className="app-container selection:bg-airnav-red selection:text-white">
+                        <Navbar />
+                        <Hero />
+                        <About />
+                        <Services />
+                        <DetailCabang />
+                        <GalleryAndFooter />
+                    </div>
+                );
+            };
+
+            const root = ReactDOM.createRoot(document.getElementById('root'));
+            root.render(<App />);
+        })();
+    </script>
+</body>
+</html>
